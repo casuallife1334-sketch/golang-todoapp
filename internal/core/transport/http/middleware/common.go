@@ -16,9 +16,10 @@ func CORS() Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			allowedOrigins := map[string]struct{}{
-				"http://localhost:5050": {},
-				"http://127.0.0.1:5050": {},
-				"null":                  {},
+				"http://localhost:5050":    {},
+				"http://127.0.0.1:5050":    {},
+				"null":                     {},
+				"http://5.100.81.231:5050": {},
 			}
 
 			origin := r.Header.Get("Origin")
