@@ -38,6 +38,24 @@ func (h *HTTPResponseHandler) NoContentResponse() {
 	h.rw.WriteHeader(http.StatusNoContent)
 }
 
+func (h *HTTPResponseHandler) HTMLResponse(html []byte) {
+	h.rw.Header().Set("Content-Type", "text/html; charset=utf-8")
+	h.rw.WriteHeader(http.StatusOK)
+
+	if _, err := h.rw.Write(html); err != nil {
+		h.log.Error("write HTML HTTP response: %w", zap.Error(err))
+	}
+}
+
+func (h *HTTPResponseHandler) FaviconResponse(favicon []byte) {
+	h.rw.Header().Set("Content-Type", "image/svg+xml")
+	h.rw.WriteHeader(http.StatusOK)
+
+	if _, err := h.rw.Write(favicon); err != nil {
+		h.log.Error("write favicon HTTP response: %w", zap.Error(err))
+	}
+}
+
 func (h *HTTPResponseHandler) ErrorResponse(err error, msg string) {
 	var (
 		statusCode int

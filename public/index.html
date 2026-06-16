@@ -1,0 +1,1434 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TodoApp</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <style>
+        :root {
+            --bg: #f4f9fd;
+            --panel: #ffffff;
+            --panel-soft: #eef7fd;
+            --sidebar: #0f4f72;
+            --sidebar-strong: #0b3c57;
+            --accent: #0ea5e9;
+            --accent-dark: #0284c7;
+            --text: #102a43;
+            --muted: #6b7c8f;
+            --line: #dbe8f0;
+            --success: #16a34a;
+            --warning: #f59e0b;
+            --danger: #dc2626;
+            --shadow: 0 18px 55px rgba(15, 79, 114, 0.13);
+            --radius: 8px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            color: var(--text);
+            background:
+                linear-gradient(140deg, rgba(14, 165, 233, 0.12), transparent 34%),
+                linear-gradient(320deg, rgba(15, 79, 114, 0.08), transparent 30%),
+                var(--bg);
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        button,
+        input,
+        select,
+        textarea {
+            font: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        .app {
+            display: grid;
+            grid-template-columns: 248px minmax(0, 1fr);
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            padding: 24px 18px;
+            color: #e7f6fd;
+            background: linear-gradient(180deg, var(--sidebar), var(--sidebar-strong));
+            box-shadow: 18px 0 48px rgba(15, 79, 114, 0.18);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 34px;
+            padding: 0 6px;
+        }
+
+        .brand-mark {
+            display: grid;
+            width: 42px;
+            height: 42px;
+            place-items: center;
+            border-radius: var(--radius);
+            color: var(--sidebar);
+            background: #dff5ff;
+            font-weight: 800;
+        }
+
+        .brand-title {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: 0;
+        }
+
+        .brand-subtitle {
+            margin-top: 2px;
+            color: #a7d8ef;
+            font-size: 12px;
+        }
+
+        .nav {
+            display: grid;
+            gap: 8px;
+        }
+
+        .nav-button {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            min-height: 46px;
+            padding: 0 13px;
+            border: 0;
+            border-radius: var(--radius);
+            color: #ccecf9;
+            background: transparent;
+            text-align: left;
+            transition: background 150ms ease, color 150ms ease;
+        }
+
+        .nav-button:hover,
+        .nav-button.active {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.13);
+        }
+
+        .nav-icon {
+            display: grid;
+            width: 24px;
+            height: 24px;
+            place-items: center;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.12);
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .api-status {
+            position: absolute;
+            right: 18px;
+            bottom: 20px;
+            left: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 12px;
+            border-radius: var(--radius);
+            background: rgba(255, 255, 255, 0.12);
+            color: #e8f8ff;
+            font-size: 13px;
+        }
+
+        .status-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: var(--warning);
+            box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.18);
+        }
+
+        .status-dot.online {
+            background: var(--success);
+            box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.18);
+        }
+
+        .main {
+            min-width: 0;
+            padding: 28px;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 18px;
+            margin-bottom: 22px;
+        }
+
+        .eyebrow {
+            margin: 0 0 5px;
+            color: var(--accent-dark);
+            font-size: 13px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 30px;
+            line-height: 1.15;
+            letter-spacing: 0;
+        }
+
+        .topbar-text {
+            margin: 8px 0 0;
+            color: var(--muted);
+            line-height: 1.5;
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 40px;
+            padding: 0 14px;
+            border: 1px solid transparent;
+            border-radius: var(--radius);
+            background: var(--accent);
+            color: #ffffff;
+            font-weight: 800;
+            text-decoration: none;
+            transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
+        }
+
+        .button:hover {
+            background: var(--accent-dark);
+            box-shadow: 0 10px 26px rgba(14, 165, 233, 0.22);
+            transform: translateY(-1px);
+        }
+
+        .button.secondary {
+            border-color: var(--line);
+            background: #ffffff;
+            color: var(--text);
+        }
+
+        .button.secondary:hover {
+            background: var(--panel-soft);
+            box-shadow: none;
+        }
+
+        .button.danger {
+            background: var(--danger);
+        }
+
+        .button.danger:hover {
+            background: #b91c1c;
+        }
+
+        .icon-button {
+            display: inline-grid;
+            width: 36px;
+            height: 36px;
+            place-items: center;
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            background: #ffffff;
+            color: var(--text);
+            font-weight: 900;
+        }
+
+        .icon-button:hover {
+            border-color: #b8d8e9;
+            background: var(--panel-soft);
+        }
+
+        .icon-button.danger {
+            color: var(--danger);
+        }
+
+        .view {
+            display: none;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        .toolbar,
+        .card,
+        .table-wrap,
+        .stats-card {
+            border: 1px solid rgba(219, 232, 240, 0.95);
+            border-radius: var(--radius);
+            background: rgba(255, 255, 255, 0.92);
+            box-shadow: var(--shadow);
+        }
+
+        .toolbar {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(130px, 1fr)) auto;
+            gap: 12px;
+            margin-bottom: 18px;
+            padding: 14px;
+            align-items: end;
+        }
+
+        .field {
+            display: grid;
+            gap: 7px;
+        }
+
+        .field label {
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .field input,
+        .field select,
+        .field textarea {
+            width: 100%;
+            min-height: 40px;
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            background: #ffffff;
+            color: var(--text);
+            padding: 9px 11px;
+            outline: none;
+        }
+
+        .field textarea {
+            min-height: 104px;
+            resize: vertical;
+        }
+
+        .field input:focus,
+        .field select:focus,
+        .field textarea:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.16);
+        }
+
+        .tasks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 14px;
+        }
+
+        .card {
+            padding: 16px;
+        }
+
+        .task-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .task-title {
+            margin: 0;
+            font-size: 17px;
+            line-height: 1.35;
+        }
+
+        .task-desc {
+            min-height: 44px;
+            margin: 11px 0 16px;
+            color: var(--muted);
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+
+        .task-meta {
+            display: grid;
+            gap: 7px;
+            margin-bottom: 14px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .task-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            min-height: 28px;
+            padding: 0 10px;
+            border-radius: 999px;
+            background: #e8f7ee;
+            color: #15803d;
+            font-size: 12px;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+
+        .status-pill.open {
+            background: #fff7ed;
+            color: #c2410c;
+        }
+
+        .toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 800;
+            user-select: none;
+        }
+
+        .toggle input {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent);
+        }
+
+        .table-wrap {
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #ffffff;
+        }
+
+        th,
+        td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--line);
+            text-align: left;
+            vertical-align: middle;
+        }
+
+        th {
+            background: #f0f8fd;
+            color: #426276;
+            font-size: 12px;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        td {
+            color: var(--text);
+        }
+
+        tr:last-child td {
+            border-bottom: 0;
+        }
+
+        .row-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(160px, 1fr));
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .stats-card {
+            padding: 18px;
+        }
+
+        .stats-label {
+            margin: 0 0 10px;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .stats-value {
+            margin: 0;
+            font-size: 30px;
+            font-weight: 900;
+            line-height: 1.1;
+        }
+
+        .progress-card {
+            padding: 18px;
+        }
+
+        .progress-line {
+            height: 12px;
+            margin-top: 12px;
+            overflow: hidden;
+            border-radius: 999px;
+            background: #d9ecf7;
+        }
+
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, var(--accent), #22c55e);
+            transition: width 180ms ease;
+        }
+
+        .empty {
+            display: none;
+            padding: 28px;
+            border: 1px dashed #b9d8e8;
+            border-radius: var(--radius);
+            background: rgba(255, 255, 255, 0.7);
+            color: var(--muted);
+            text-align: center;
+        }
+
+        .empty.visible {
+            display: block;
+        }
+
+        .toast {
+            position: fixed;
+            right: 22px;
+            bottom: 22px;
+            z-index: 40;
+            display: none;
+            max-width: min(420px, calc(100vw - 44px));
+            padding: 13px 15px;
+            border-radius: var(--radius);
+            background: #0f4f72;
+            color: #ffffff;
+            box-shadow: 0 22px 55px rgba(15, 79, 114, 0.28);
+            line-height: 1.45;
+        }
+
+        .toast.visible {
+            display: block;
+        }
+
+        .toast.error {
+            background: #991b1b;
+        }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            z-index: 30;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(16, 42, 67, 0.42);
+        }
+
+        .modal.visible {
+            display: flex;
+        }
+
+        .modal-panel {
+            width: min(560px, 100%);
+            max-height: calc(100vh - 40px);
+            overflow: auto;
+            border-radius: var(--radius);
+            background: #ffffff;
+            box-shadow: 0 28px 80px rgba(16, 42, 67, 0.28);
+        }
+
+        .modal-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 18px 20px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .modal-head h2 {
+            margin: 0;
+            font-size: 20px;
+        }
+
+        .modal-body {
+            display: grid;
+            gap: 14px;
+            padding: 20px;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding: 0 20px 20px;
+        }
+
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .checkbox-row input {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent);
+        }
+
+        .muted {
+            color: var(--muted);
+        }
+
+        @media (max-width: 980px) {
+            .app {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                position: static;
+                height: auto;
+                padding: 16px;
+            }
+
+            .brand {
+                margin-bottom: 14px;
+            }
+
+            .nav {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .api-status {
+                position: static;
+                margin-top: 14px;
+            }
+
+            .main {
+                padding: 20px;
+            }
+
+            .toolbar {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 640px) {
+            .nav {
+                grid-template-columns: 1fr;
+            }
+
+            .topbar {
+                display: grid;
+            }
+
+            .actions {
+                justify-content: stretch;
+            }
+
+            .actions .button,
+            .toolbar .button {
+                width: 100%;
+            }
+
+            .toolbar,
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .table-wrap {
+                overflow-x: auto;
+            }
+
+            table {
+                min-width: 620px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-mark">T</div>
+                <div>
+                    <div class="brand-title">TodoApp</div>
+                    <div class="brand-subtitle">Панель управления</div>
+                </div>
+            </div>
+
+            <nav class="nav" aria-label="Разделы приложения">
+                <button class="nav-button active" type="button" data-view-target="tasks">
+                    <span class="nav-icon">✓</span>
+                    <span>Задачи</span>
+                </button>
+                <button class="nav-button" type="button" data-view-target="users">
+                    <span class="nav-icon">U</span>
+                    <span>Пользователи</span>
+                </button>
+                <button class="nav-button" type="button" data-view-target="statistics">
+                    <span class="nav-icon">%</span>
+                    <span>Статистика</span>
+                </button>
+            </nav>
+
+            <div class="api-status">
+                <span>API 127.0.0.1:5050</span>
+                <span class="status-dot" id="api-status-dot" title="Статус API"></span>
+            </div>
+        </aside>
+
+        <main class="main">
+            <section class="view active" id="view-tasks">
+                <div class="topbar">
+                    <div>
+                        <p class="eyebrow">Задачи</p>
+                        <h1>Рабочий список задач</h1>
+                        <p class="topbar-text">Создание, редактирование, выполнение и удаление задач.</p>
+                    </div>
+                    <div class="actions">
+                        <button class="button secondary" type="button" data-action="refresh-tasks">Обновить</button>
+                        <button class="button" type="button" data-action="open-task-create">Новая задача</button>
+                    </div>
+                </div>
+
+                <div class="toolbar">
+                    <div class="field">
+                        <label for="task-filter-user">Пользователь</label>
+                        <select id="task-filter-user"></select>
+                    </div>
+                    <div class="field">
+                        <label for="task-limit">Limit</label>
+                        <input id="task-limit" type="number" min="1" value="20">
+                    </div>
+                    <div class="field">
+                        <label for="task-offset">Offset</label>
+                        <input id="task-offset" type="number" min="0" value="0">
+                    </div>
+                    <button class="button secondary" type="button" data-action="task-prev">Назад</button>
+                    <button class="button secondary" type="button" data-action="task-next">Вперед</button>
+                </div>
+
+                <div class="tasks-grid" id="tasks-list"></div>
+                <div class="empty" id="tasks-empty">Задач пока нет или текущий фильтр ничего не нашел.</div>
+            </section>
+
+            <section class="view" id="view-users">
+                <div class="topbar">
+                    <div>
+                        <p class="eyebrow">Пользователи</p>
+                        <h1>Пользователи приложения</h1>
+                        <p class="topbar-text">Создание, редактирование и удаление авторов задач.</p>
+                    </div>
+                    <div class="actions">
+                        <button class="button secondary" type="button" data-action="refresh-users">Обновить</button>
+                        <button class="button" type="button" data-action="open-user-create">Новый пользователь</button>
+                    </div>
+                </div>
+
+                <div class="toolbar">
+                    <div class="field">
+                        <label for="user-limit">Limit</label>
+                        <input id="user-limit" type="number" min="1" value="20">
+                    </div>
+                    <div class="field">
+                        <label for="user-offset">Offset</label>
+                        <input id="user-offset" type="number" min="0" value="0">
+                    </div>
+                    <span></span>
+                    <button class="button secondary" type="button" data-action="user-prev">Назад</button>
+                    <button class="button secondary" type="button" data-action="user-next">Вперед</button>
+                </div>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>ФИО</th>
+                                <th>Телефон</th>
+                                <th>Версия</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-list"></tbody>
+                    </table>
+                </div>
+                <div class="empty" id="users-empty">Пользователей пока нет.</div>
+            </section>
+
+            <section class="view" id="view-statistics">
+                <div class="topbar">
+                    <div>
+                        <p class="eyebrow">Статистика</p>
+                        <h1>Сводка по задачам</h1>
+                        <p class="topbar-text">Статистика по всем задачам или по выбранному пользователю.</p>
+                    </div>
+                    <div class="actions">
+                        <button class="button secondary" type="button" data-action="refresh-statistics">Обновить</button>
+                    </div>
+                </div>
+
+                <div class="toolbar">
+                    <div class="field">
+                        <label for="stats-user">Пользователь</label>
+                        <select id="stats-user"></select>
+                    </div>
+                    <div class="field">
+                        <label for="stats-from">From</label>
+                        <input id="stats-from" type="date">
+                    </div>
+                    <div class="field">
+                        <label for="stats-to">To</label>
+                        <input id="stats-to" type="date">
+                    </div>
+                    <span></span>
+                    <button class="button secondary" type="button" data-action="clear-statistics">Сбросить</button>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stats-card">
+                        <p class="stats-label">Создано задач</p>
+                        <p class="stats-value" id="stats-created">0</p>
+                    </div>
+                    <div class="stats-card">
+                        <p class="stats-label">Выполнено задач</p>
+                        <p class="stats-value" id="stats-completed">0</p>
+                    </div>
+                    <div class="stats-card">
+                        <p class="stats-label">Процент выполнения</p>
+                        <p class="stats-value" id="stats-rate">0%</p>
+                    </div>
+                    <div class="stats-card">
+                        <p class="stats-label">Среднее время</p>
+                        <p class="stats-value" id="stats-average">—</p>
+                    </div>
+                </div>
+
+                <div class="stats-card progress-card">
+                    <p class="stats-label">Выполнение задач</p>
+                    <div class="progress-line">
+                        <div class="progress-fill" id="stats-progress"></div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div class="modal" id="task-modal" aria-hidden="true">
+        <form class="modal-panel" id="task-form">
+            <div class="modal-head">
+                <h2 id="task-modal-title">Новая задача</h2>
+                <button class="icon-button" type="button" data-action="close-modal" aria-label="Закрыть">×</button>
+            </div>
+            <div class="modal-body">
+                <input id="task-id" type="hidden">
+                <div class="field">
+                    <label for="task-title">Название</label>
+                    <input id="task-title" type="text" maxlength="100" required>
+                </div>
+                <div class="field">
+                    <label for="task-description">Описание</label>
+                    <textarea id="task-description" maxlength="1000"></textarea>
+                </div>
+                <label class="checkbox-row" id="task-clear-description-row">
+                    <input id="task-clear-description" type="checkbox">
+                    Очистить описание
+                </label>
+                <div class="field">
+                    <label for="task-author">Автор</label>
+                    <select id="task-author" required></select>
+                </div>
+                <label class="checkbox-row" id="task-completed-row">
+                    <input id="task-completed" type="checkbox">
+                    Задача выполнена
+                </label>
+            </div>
+            <div class="modal-actions">
+                <button class="button secondary" type="button" data-action="close-modal">Отмена</button>
+                <button class="button" type="submit">Сохранить</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="modal" id="user-modal" aria-hidden="true">
+        <form class="modal-panel" id="user-form">
+            <div class="modal-head">
+                <h2 id="user-modal-title">Новый пользователь</h2>
+                <button class="icon-button" type="button" data-action="close-modal" aria-label="Закрыть">×</button>
+            </div>
+            <div class="modal-body">
+                <input id="user-id" type="hidden">
+                <div class="field">
+                    <label for="user-name">ФИО</label>
+                    <input id="user-name" type="text" minlength="3" maxlength="100" required>
+                </div>
+                <div class="field">
+                    <label for="user-phone">Телефон</label>
+                    <input id="user-phone" type="tel" minlength="10" maxlength="15" placeholder="+79998887766">
+                </div>
+                <label class="checkbox-row" id="user-clear-phone-row">
+                    <input id="user-clear-phone" type="checkbox">
+                    Очистить телефон
+                </label>
+            </div>
+            <div class="modal-actions">
+                <button class="button secondary" type="button" data-action="close-modal">Отмена</button>
+                <button class="button" type="submit">Сохранить</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const API_BASE = 'http://127.0.0.1:5050/api/v1';
+
+        const state = {
+            users: [],
+            tasks: [],
+            activeView: 'tasks',
+        };
+
+        const elements = {
+            apiDot: document.getElementById('api-status-dot'),
+            toast: document.getElementById('toast'),
+            tasksList: document.getElementById('tasks-list'),
+            tasksEmpty: document.getElementById('tasks-empty'),
+            usersList: document.getElementById('users-list'),
+            usersEmpty: document.getElementById('users-empty'),
+            taskFilterUser: document.getElementById('task-filter-user'),
+            taskLimit: document.getElementById('task-limit'),
+            taskOffset: document.getElementById('task-offset'),
+            userLimit: document.getElementById('user-limit'),
+            userOffset: document.getElementById('user-offset'),
+            statsUser: document.getElementById('stats-user'),
+            statsFrom: document.getElementById('stats-from'),
+            statsTo: document.getElementById('stats-to'),
+            statsCreated: document.getElementById('stats-created'),
+            statsCompleted: document.getElementById('stats-completed'),
+            statsRate: document.getElementById('stats-rate'),
+            statsAverage: document.getElementById('stats-average'),
+            statsProgress: document.getElementById('stats-progress'),
+            taskModal: document.getElementById('task-modal'),
+            taskForm: document.getElementById('task-form'),
+            taskModalTitle: document.getElementById('task-modal-title'),
+            taskId: document.getElementById('task-id'),
+            taskTitle: document.getElementById('task-title'),
+            taskDescription: document.getElementById('task-description'),
+            taskClearDescription: document.getElementById('task-clear-description'),
+            taskClearDescriptionRow: document.getElementById('task-clear-description-row'),
+            taskAuthor: document.getElementById('task-author'),
+            taskCompleted: document.getElementById('task-completed'),
+            taskCompletedRow: document.getElementById('task-completed-row'),
+            userModal: document.getElementById('user-modal'),
+            userForm: document.getElementById('user-form'),
+            userModalTitle: document.getElementById('user-modal-title'),
+            userId: document.getElementById('user-id'),
+            userName: document.getElementById('user-name'),
+            userPhone: document.getElementById('user-phone'),
+            userClearPhone: document.getElementById('user-clear-phone'),
+            userClearPhoneRow: document.getElementById('user-clear-phone-row'),
+        };
+
+        function escapeHTML(value) {
+            return String(value ?? '')
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#039;');
+        }
+
+        function formatDate(value) {
+            if (!value) return '—';
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return '—';
+            return date.toLocaleString('ru-RU', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+            });
+        }
+
+        function userNameById(id) {
+            const user = state.users.find((item) => item.id === id);
+            return user ? user.full_name : `ID ${id}`;
+        }
+
+        function showToast(message, type = 'info') {
+            elements.toast.textContent = message;
+            elements.toast.className = `toast visible ${type === 'error' ? 'error' : ''}`;
+            window.clearTimeout(showToast.timer);
+            showToast.timer = window.setTimeout(() => {
+                elements.toast.className = 'toast';
+            }, 3600);
+        }
+
+        function setApiStatus(online) {
+            elements.apiDot.classList.toggle('online', Boolean(online));
+            elements.apiDot.title = online ? 'API доступен' : 'API недоступен';
+        }
+
+        async function request(path, options = {}) {
+            const response = await fetch(`${API_BASE}${path}`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(options.headers || {}),
+                },
+                ...options,
+            });
+
+            setApiStatus(true);
+
+            if (response.status === 204) {
+                return null;
+            }
+
+            const text = await response.text();
+            const data = text ? JSON.parse(text) : null;
+
+            if (!response.ok) {
+                const message = data?.message || data?.error || `HTTP ${response.status}`;
+                throw new Error(message);
+            }
+
+            return data;
+        }
+
+        function buildQuery(params) {
+            const query = new URLSearchParams();
+            Object.entries(params).forEach(([key, value]) => {
+                if (value !== '' && value !== null && value !== undefined) {
+                    query.set(key, value);
+                }
+            });
+            const value = query.toString();
+            return value ? `?${value}` : '';
+        }
+
+        async function safely(action, successMessage) {
+            try {
+                await action();
+                if (successMessage) showToast(successMessage);
+            } catch (error) {
+                setApiStatus(false);
+                showToast(error.message || 'Ошибка запроса к API', 'error');
+            }
+        }
+
+        async function loadUsers({ render = true } = {}) {
+            const data = await request(`/users${buildQuery({
+                limit: elements.userLimit.value,
+                offset: elements.userOffset.value,
+            })}`);
+            state.users = Array.isArray(data) ? data : [];
+            fillUserSelects();
+            if (render) renderUsers();
+        }
+
+        async function loadTasks() {
+            const data = await request(`/tasks${buildQuery({
+                user_id: elements.taskFilterUser.value,
+                limit: elements.taskLimit.value,
+                offset: elements.taskOffset.value,
+            })}`);
+            state.tasks = Array.isArray(data) ? data : [];
+            renderTasks();
+        }
+
+        async function loadStatistics() {
+            const data = await request(`/statistics${buildQuery({
+                user_id: elements.statsUser.value,
+                from: elements.statsFrom.value,
+                to: elements.statsTo.value,
+            })}`);
+            renderStatistics(data || {});
+        }
+
+        function fillUserSelects() {
+            const options = [
+                '<option value="">Все пользователи</option>',
+                ...state.users.map((user) => (
+                    `<option value="${user.id}">${escapeHTML(user.full_name)} · ID ${user.id}</option>`
+                )),
+            ].join('');
+            const authorOptions = state.users.map((user) => (
+                `<option value="${user.id}">${escapeHTML(user.full_name)} · ID ${user.id}</option>`
+            )).join('');
+
+            const selectedTaskUser = elements.taskFilterUser.value;
+            const selectedStatsUser = elements.statsUser.value;
+            const selectedAuthor = elements.taskAuthor.value;
+
+            elements.taskFilterUser.innerHTML = options;
+            elements.statsUser.innerHTML = options;
+            elements.taskAuthor.innerHTML = authorOptions || '<option value="">Сначала создайте пользователя</option>';
+
+            elements.taskFilterUser.value = selectedTaskUser;
+            elements.statsUser.value = selectedStatsUser;
+            if (selectedAuthor) elements.taskAuthor.value = selectedAuthor;
+        }
+
+        function renderTasks() {
+            elements.tasksEmpty.classList.toggle('visible', state.tasks.length === 0);
+            elements.tasksList.innerHTML = state.tasks.map((task) => {
+                const description = task.description || 'Описание не указано';
+                const completedClass = task.completed ? '' : 'open';
+                const completedText = task.completed ? 'Выполнено' : 'В работе';
+
+                return `
+                    <article class="card">
+                        <div class="task-head">
+                            <h3 class="task-title">${escapeHTML(task.title)}</h3>
+                            <span class="status-pill ${completedClass}">${completedText}</span>
+                        </div>
+                        <p class="task-desc">${escapeHTML(description)}</p>
+                        <div class="task-meta">
+                            <span>Автор: ${escapeHTML(userNameById(task.author_user_id))}</span>
+                            <span>Создано: ${formatDate(task.created_at)}</span>
+                            <span>Завершено: ${formatDate(task.completed_at)}</span>
+                            <span>ID ${task.id} · версия ${task.version}</span>
+                        </div>
+                        <div class="task-actions">
+                            <label class="toggle">
+                                <input type="checkbox" ${task.completed ? 'checked' : ''} data-action="toggle-task" data-id="${task.id}">
+                                Выполнено
+                            </label>
+                            <div class="row-actions">
+                                <button class="icon-button" type="button" title="Редактировать" data-action="open-task-edit" data-id="${task.id}">✎</button>
+                                <button class="icon-button danger" type="button" title="Удалить" data-action="delete-task" data-id="${task.id}">×</button>
+                            </div>
+                        </div>
+                    </article>
+                `;
+            }).join('');
+        }
+
+        function renderUsers() {
+            elements.usersEmpty.classList.toggle('visible', state.users.length === 0);
+            elements.usersList.innerHTML = state.users.map((user) => `
+                <tr>
+                    <td>${user.id}</td>
+                    <td>${escapeHTML(user.full_name)}</td>
+                    <td>${escapeHTML(user.phone_number || '—')}</td>
+                    <td>${user.version}</td>
+                    <td>
+                        <div class="row-actions">
+                            <button class="icon-button" type="button" title="Редактировать" data-action="open-user-edit" data-id="${user.id}">✎</button>
+                            <button class="icon-button danger" type="button" title="Удалить" data-action="delete-user" data-id="${user.id}">×</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderStatistics(data) {
+            const rate = Number(data.tasks_completed_rate || 0);
+            const normalizedRate = Math.max(0, Math.min(100, rate));
+
+            elements.statsCreated.textContent = data.tasks_created ?? 0;
+            elements.statsCompleted.textContent = data.tasks_completed ?? 0;
+            elements.statsRate.textContent = `${normalizedRate.toFixed(1).replace('.0', '')}%`;
+            elements.statsAverage.textContent = data.tasks_average_completion_time || '—';
+            elements.statsProgress.style.width = `${normalizedRate}%`;
+        }
+
+        function switchView(view) {
+            state.activeView = view;
+            document.querySelectorAll('.nav-button').forEach((button) => {
+                button.classList.toggle('active', button.dataset.viewTarget === view);
+            });
+            document.querySelectorAll('.view').forEach((section) => {
+                section.classList.toggle('active', section.id === `view-${view}`);
+            });
+
+            if (view === 'tasks') safely(async () => {
+                await loadUsers({ render: false });
+                await loadTasks();
+            });
+            if (view === 'users') safely(() => loadUsers());
+            if (view === 'statistics') safely(async () => {
+                await loadUsers({ render: false });
+                await loadStatistics();
+            });
+        }
+
+        function openModal(modal) {
+            modal.classList.add('visible');
+            modal.setAttribute('aria-hidden', 'false');
+        }
+
+        function closeModals() {
+            document.querySelectorAll('.modal').forEach((modal) => {
+                modal.classList.remove('visible');
+                modal.setAttribute('aria-hidden', 'true');
+            });
+        }
+
+        function openTaskCreate() {
+            elements.taskForm.reset();
+            elements.taskId.value = '';
+            elements.taskModalTitle.textContent = 'Новая задача';
+            elements.taskAuthor.disabled = false;
+            elements.taskCompletedRow.style.display = 'none';
+            elements.taskClearDescriptionRow.style.display = 'none';
+            openModal(elements.taskModal);
+        }
+
+        function openTaskEdit(id) {
+            const task = state.tasks.find((item) => item.id === Number(id));
+            if (!task) return;
+
+            elements.taskForm.reset();
+            elements.taskId.value = task.id;
+            elements.taskModalTitle.textContent = 'Редактирование задачи';
+            elements.taskTitle.value = task.title || '';
+            elements.taskDescription.value = task.description || '';
+            elements.taskAuthor.value = task.author_user_id;
+            elements.taskAuthor.disabled = true;
+            elements.taskCompleted.checked = Boolean(task.completed);
+            elements.taskCompletedRow.style.display = '';
+            elements.taskClearDescriptionRow.style.display = '';
+            openModal(elements.taskModal);
+        }
+
+        function openUserCreate() {
+            elements.userForm.reset();
+            elements.userId.value = '';
+            elements.userModalTitle.textContent = 'Новый пользователь';
+            elements.userClearPhoneRow.style.display = 'none';
+            openModal(elements.userModal);
+        }
+
+        function openUserEdit(id) {
+            const user = state.users.find((item) => item.id === Number(id));
+            if (!user) return;
+
+            elements.userForm.reset();
+            elements.userId.value = user.id;
+            elements.userModalTitle.textContent = 'Редактирование пользователя';
+            elements.userName.value = user.full_name || '';
+            elements.userPhone.value = user.phone_number || '';
+            elements.userClearPhoneRow.style.display = '';
+            openModal(elements.userModal);
+        }
+
+        async function saveTask(event) {
+            event.preventDefault();
+
+            const id = elements.taskId.value;
+            const description = elements.taskDescription.value.trim();
+
+            if (id) {
+                const body = {
+                    title: elements.taskTitle.value.trim(),
+                    completed: elements.taskCompleted.checked,
+                };
+
+                if (elements.taskClearDescription.checked) {
+                    body.description = null;
+                } else if (description) {
+                    body.description = description;
+                }
+
+                await request(`/tasks/${id}`, {
+                    method: 'PATCH',
+                    body: JSON.stringify(body),
+                });
+            } else {
+                const body = {
+                    title: elements.taskTitle.value.trim(),
+                    author_user_id: Number(elements.taskAuthor.value),
+                };
+                if (description) body.description = description;
+
+                await request('/tasks', {
+                    method: 'POST',
+                    body: JSON.stringify(body),
+                });
+            }
+
+            closeModals();
+            await loadTasks();
+        }
+
+        async function saveUser(event) {
+            event.preventDefault();
+
+            const id = elements.userId.value;
+            const phone = elements.userPhone.value.trim();
+
+            if (id) {
+                const body = {
+                    full_name: elements.userName.value.trim(),
+                };
+
+                if (elements.userClearPhone.checked) {
+                    body.phone_number = null;
+                } else if (phone) {
+                    body.phone_number = phone;
+                }
+
+                await request(`/users/${id}`, {
+                    method: 'PATCH',
+                    body: JSON.stringify(body),
+                });
+            } else {
+                const body = {
+                    full_name: elements.userName.value.trim(),
+                };
+                if (phone) body.phone_number = phone;
+
+                await request('/users', {
+                    method: 'POST',
+                    body: JSON.stringify(body),
+                });
+            }
+
+            closeModals();
+            await loadUsers();
+            await loadTasks();
+        }
+
+        function changeOffset(input, direction) {
+            const limit = Math.max(1, Number(input === elements.taskOffset ? elements.taskLimit.value : elements.userLimit.value) || 20);
+            const current = Math.max(0, Number(input.value) || 0);
+            input.value = Math.max(0, current + direction * limit);
+        }
+
+        document.addEventListener('click', (event) => {
+            const control = event.target.closest('[data-action], [data-view-target]');
+            if (!control) return;
+
+            const action = control.dataset.action;
+            const viewTarget = control.dataset.viewTarget;
+            const id = control.dataset.id;
+
+            if (viewTarget) {
+                switchView(viewTarget);
+                return;
+            }
+
+            if (action === 'close-modal') closeModals();
+            if (action === 'open-task-create') openTaskCreate();
+            if (action === 'open-task-edit') openTaskEdit(id);
+            if (action === 'open-user-create') openUserCreate();
+            if (action === 'open-user-edit') openUserEdit(id);
+            if (action === 'refresh-tasks') safely(loadTasks, 'Задачи обновлены');
+            if (action === 'refresh-users') safely(loadUsers, 'Пользователи обновлены');
+            if (action === 'refresh-statistics') safely(loadStatistics, 'Статистика обновлена');
+            if (action === 'clear-statistics') {
+                elements.statsUser.value = '';
+                elements.statsFrom.value = '';
+                elements.statsTo.value = '';
+                safely(loadStatistics);
+            }
+            if (action === 'task-prev') {
+                changeOffset(elements.taskOffset, -1);
+                safely(loadTasks);
+            }
+            if (action === 'task-next') {
+                changeOffset(elements.taskOffset, 1);
+                safely(loadTasks);
+            }
+            if (action === 'user-prev') {
+                changeOffset(elements.userOffset, -1);
+                safely(loadUsers);
+            }
+            if (action === 'user-next') {
+                changeOffset(elements.userOffset, 1);
+                safely(loadUsers);
+            }
+            if (action === 'delete-task') safely(async () => {
+                if (!window.confirm('Удалить задачу?')) return;
+                await request(`/tasks/${id}`, { method: 'DELETE' });
+                await loadTasks();
+            }, 'Задача удалена');
+            if (action === 'delete-user') safely(async () => {
+                if (!window.confirm('Удалить пользователя?')) return;
+                await request(`/users/${id}`, { method: 'DELETE' });
+                await loadUsers();
+                await loadTasks();
+            }, 'Пользователь удален');
+        });
+
+        document.addEventListener('change', (event) => {
+            const action = event.target.dataset.action;
+            if (action === 'toggle-task') {
+                const id = event.target.dataset.id;
+                safely(async () => {
+                    await request(`/tasks/${id}`, {
+                        method: 'PATCH',
+                        body: JSON.stringify({ completed: event.target.checked }),
+                    });
+                    await loadTasks();
+                }, 'Статус задачи изменен');
+            }
+        });
+
+        [elements.taskFilterUser, elements.taskLimit, elements.taskOffset].forEach((input) => {
+            input.addEventListener('change', () => safely(loadTasks));
+        });
+
+        [elements.userLimit, elements.userOffset].forEach((input) => {
+            input.addEventListener('change', () => safely(loadUsers));
+        });
+
+        [elements.statsUser, elements.statsFrom, elements.statsTo].forEach((input) => {
+            input.addEventListener('change', () => safely(loadStatistics));
+        });
+
+        elements.taskForm.addEventListener('submit', (event) => {
+            safely(() => saveTask(event), 'Задача сохранена');
+        });
+
+        elements.userForm.addEventListener('submit', (event) => {
+            safely(() => saveUser(event), 'Пользователь сохранен');
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') closeModals();
+        });
+
+        document.querySelectorAll('.modal').forEach((modal) => {
+            modal.addEventListener('click', (event) => {
+                if (event.target === modal) closeModals();
+            });
+        });
+
+        safely(async () => {
+            await loadUsers({ render: false });
+            await loadTasks();
+        });
+    </script>
+</body>
+</html>
