@@ -12,16 +12,14 @@ import (
 
 const requestIDHeader = "X-Request-ID"
 
-func CORS() Middleware {
+func CORS(allowedOriginsList []string) Middleware {
+	allowedOrigins := make(map[string]struct{})
+	for _, origin := range allowedOriginsList {
+		allowedOrigins[origin] = struct{}{}
+	}
+
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			allowedOrigins := map[string]struct{}{
-				"http://localhost:5050":    {},
-				"http://127.0.0.1:5050":    {},
-				"null":                     {},
-				"http://5.100.81.231:5050": {},
-			}
-
 			origin := r.Header.Get("Origin")
 
 			if _, ok := allowedOrigins[origin]; ok {
